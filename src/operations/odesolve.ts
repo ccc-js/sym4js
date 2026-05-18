@@ -1,4 +1,4 @@
-import { type Expression, Integer, Symbol, Add, Mul, Pow, Neg, Div, Zero, createNeg } from '../core/expr.js'
+import { type Expression, Integer, Symbol, Add, Mul, Pow, Neg, Div, Zero, One, createNeg } from '../core/expr.js'
 import { integrate } from './integrate.js'
 import { Exp, Sin, Cos } from '../functions/trig.js'
 
@@ -16,12 +16,23 @@ export function dsolve(equation: Expression, y: Symbol, options?: { initialCondi
     const terms = add.args
 
     if (terms.length === 2) {
+      const separableSol = solveSeparable(equation, y, x)
+      if (separableSol !== null) return separableSol
+
+      const bernoulliSol = solveBernoulli(equation, y, x)
+      if (bernoulliSol !== null) return bernoulliSol
+
       const linearSol = solveLinearFirstOrder(equation, y, x)
       if (linearSol !== null) return linearSol
 
       const constCoeffSol = solveConstCoeffLinear(equation, y, x)
       if (constCoeffSol !== null) return constCoeffSol
     }
+  }
+
+  if (equation.type === 'mul') {
+    const separableSol = solveSeparableMul(equation as Mul, y, x)
+    if (separableSol !== null) return separableSol
   }
 
   return null
@@ -163,6 +174,226 @@ function solveConstCoeffLinear(equation: Expression, y: Symbol, x: Symbol): ODES
       method: 'const_coeff_complex_roots'
     }
   }
+}
+
+function solveSeparable(equation: Expression, y: Symbol, x: Symbol): ODESolution | null {
+  if (equation.type !== 'add') return null
+
+  const add = equation as Add
+  if (add.args.length !== 2) return null
+
+  const [term1, term2] = add.args
+
+  const fOfX = tryExtractFOfX(term1, y)
+  const gOfY = tryExtractGOfY(term2, y)
+
+  if (fOfX !== null && gOfY !== null) {
+    const fInt = integrate(fOfX, x)
+    const gInt = integrate(new Div(One, gOfY), y)
+
+    const c = new Symbol('C')
+    return {
+      general: new Add(gInt, createNeg(fInt), c),
+      method: 'separable'
+    }
+  }
+
+  return null
+}
+
+function solveSeparableMul(mul: Mul, y: Symbol, x: Symbol): ODESolution | null {
+  const args = mul.args
+
+  if (args.length !== 2) return null
+
+  const fOfX = tryExtractFOfXFromTerm(args[0], y)
+  const gOfY = tryExtractGOfYFromTerm(args[1], y)
+
+  if (fOfX !== null && gOfY !== null) {
+    const fInt = integrate(fOfX, x)
+    const gInt = integrate(new Div(One, gOfY), y)
+
+    const c = new Symbol('C')
+    return {
+      general: new Add(gInt, createNeg(fInt), c),
+      method: 'separable_mul'
+    }
+  }
+
+  return null
+}
+
+function solveBernoulli(equation: Expression, y: Symbol, x: Symbol): ODESolution | null {
+  if (equation.type !== 'add') return null
+
+  const add = equation as Add
+  const terms = add.args
+
+  let dyTerm: Expression | null = null
+  let yPowerTerm: Expression | null = null
+  let otherTerms: Expression[] = []
+
+  for (const term of terms) {
+    const containsY = containsSymbol(term, y)
+    const containsDy = containsDifferential(term, y)
+
+    if (containsDy && containsY) {
+      const yPower = extractYPower(term, y)
+      if (yPower !== null && yPower !== 1n) {
+        if (dyTerm === null && yPowerTerm === null) {
+          dyTerm = term
+        }
+      }
+    } else if (containsDy && !containsY) {
+      if (dyTerm === null) dyTerm = term
+    } else if (containsY && !containsDy) {
+      if (yPowerTerm === null) yPowerTerm = term
+    } else {
+      otherTerms.push(term)
+    }
+  }
+
+  if (dyTerm === null || yPowerTerm === null) return null
+
+  const qExpr = otherTerms.length > 0
+    ? (otherTerms.length === 1 ? otherTerms[0] : new Add(...otherTerms))
+    : Zero
+
+  if (qExpr.type !== 'integer' || (qExpr as Integer).value !== 0n) return null
+
+  const pCoeff = extractCoeffOf(dyTerm, y)
+  const n = extractYPower(dyTerm, y)
+
+  if (n === null || n <= 0n) return null
+
+  const u = new Symbol('u')
+  const uExpression = new Pow(y, new Integer(n - 1n))
+
+  const linearSol = solveLinearFirstOrderForU(
+    new Add(
+      new Mul(new Integer(pCoeff * (n - 1n)), new Pow(y, new Integer(n))),
+      dyTerm
+    ),
+    u,
+    x
+  )
+
+  if (linearSol === null) return null
+
+  return {
+    general: new Pow(uExpression, new Div(One, new Integer(n - 1n))),
+    method: 'bernoulli'
+  }
+}
+
+function solveLinearFirstOrderForU(equation: Expression, u: Symbol, x: Symbol): ODESolution | null {
+  if (equation.type !== 'add') return null
+
+  const add = equation as Add
+  const terms = add.args
+
+  let duTerm: Expression | null = null
+  let uTerm: Expression | null = null
+  let otherTerms: Expression[] = []
+
+  for (const term of terms) {
+    const containsU = containsSymbol(term, u)
+    const containsDu = containsDifferential(term, u)
+
+    if (containsDu && !containsU) {
+      if (duTerm === null) duTerm = term
+    } else if (containsU && !containsDu) {
+      if (uTerm === null) uTerm = term
+    } else {
+      otherTerms.push(term)
+    }
+  }
+
+  if (duTerm === null || uTerm === null) return null
+
+  const pCoeff = extractCoeffOf(uTerm, u)
+  const qExpr = otherTerms.length > 0
+    ? (otherTerms.length === 1 ? otherTerms[0] : new Add(...otherTerms))
+    : Zero
+
+  const p = new Integer(pCoeff)
+  const intFactor = new Exp(new Mul(p, x))
+
+  const qInt = integrate(new Mul(qExpr, intFactor), x)
+  const uInt = createNeg(qInt)
+
+  const c = new Symbol('C')
+
+  return {
+    general: new Add(
+      new Mul(c, new Exp(createNeg(new Mul(p, x)))),
+      new Div(uInt, intFactor)
+    ),
+    method: 'linear_for_bernoulli'
+  }
+}
+
+function tryExtractFOfX(term: Expression, y: Symbol): Expression | null {
+  if (!containsSymbol(term, y)) {
+    return term
+  }
+  return null
+}
+
+function tryExtractGOfY(term: Expression, y: Symbol): Expression | null {
+  if (!containsSymbol(term, y)) {
+    return createNeg(term)
+  }
+  if (term.type === 'neg') {
+    return (term as Neg).arg
+  }
+  return null
+}
+
+function tryExtractFOfXFromTerm(term: Expression, y: Symbol): Expression | null {
+  if (!containsSymbol(term, y)) {
+    return term
+  }
+  return null
+}
+
+function tryExtractGOfYFromTerm(term: Expression, y: Symbol): Expression | null {
+  if (!containsSymbol(term, y)) {
+    return createNeg(term)
+  }
+  if (term.type === 'neg') {
+    return (term as Neg).arg
+  }
+  return null
+}
+
+function extractYPower(expr: Expression, y: Symbol): bigint | null {
+  if (expr.type === 'mul') {
+    const mul = expr as Mul
+    for (const arg of mul.args) {
+      if (arg.type === 'symbol' && (arg as Symbol).name === y.name) {
+        return 1n
+      }
+      if (arg.type === 'pow') {
+        const p = arg as Pow
+        if (p.base.type === 'symbol' && (p.base as Symbol).name === y.name) {
+          if (p.exp.type === 'integer') {
+            return (p.exp as Integer).value
+          }
+        }
+      }
+    }
+  }
+  if (expr.type === 'symbol') {
+    return 1n
+  }
+  if (expr.type === 'pow' && (expr as Pow).base.type === 'symbol') {
+    const p = expr as Pow
+    if ((p.base as Symbol).name === y.name && p.exp.type === 'integer') {
+      return (p.exp as Integer).value
+    }
+  }
+  return null
 }
 
 function containsSymbol(expr: Expression, sym: Symbol): boolean {

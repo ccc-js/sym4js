@@ -1,5 +1,3 @@
-
-
 export class Tensor {
   readonly data: number[][]
   readonly shape: number[]
@@ -16,28 +14,12 @@ export class Tensor {
     this.data = data.map(row => [...row])
   }
 
-  get(...indices: number[]): number {
-    if (indices.length !== this.rank) {
-      throw new Error(`Expected ${this.rank} indices, got ${indices.length}`)
-    }
-
-    let result: number[] | number = this.data
-    for (const idx of indices) {
-      result = result[idx]
-    }
-    return result
+  get(row: number, col: number): number {
+    return this.data[row][col]
   }
 
-  set(value: number, ...indices: number[]): void {
-    if (indices.length !== this.rank) {
-      throw new Error(`Expected ${this.rank} indices, got ${indices.length}`)
-    }
-
-    let current: number[][] | number[] = this.data
-    for (let i = 0; i < indices.length - 1; i++) {
-      current = current[indices[i]]
-    }
-    current[indices[indices.length - 1]] = value
+  set(value: number, row: number, col: number): void {
+    this.data[row][col] = value
   }
 
   add(other: Tensor): Tensor {
@@ -88,16 +70,14 @@ export class Tensor {
   }
 
   tensorProduct(other: Tensor): Tensor {
-    const newShape = [...this.shape, ...other.shape]
     const newData: number[][] = []
-
     for (let i = 0; i < this.data.length; i++) {
       for (let j = 0; j < other.data.length; j++) {
-        newData.push([this.data[i][0], other.data[j][0]])
+        newData.push([this.data[i][0] * other.data[j][0]])
       }
     }
 
-    return new Tensor(newData, newShape)
+    return new Tensor(newData, [this.shape[0] * other.shape[0]])
   }
 
   contract(index1: number, index2: number): number {
@@ -112,22 +92,9 @@ export class Tensor {
     let result = 0
     const n = this.shape[index1]
     for (let i = 0; i < n; i++) {
-      const indices = this.getIndicesForContract(i, index1, index2)
-      result += this.get(...indices) as number
+      result += this.get(i, i)
     }
     return result
-  }
-
-  private getIndicesForContract(diagonalVal: number, index1: number, index2: number): number[] {
-    const indices: number[] = []
-    for (let i = 0; i < this.rank; i++) {
-      if (i === index1 || i === index2) {
-        indices.push(diagonalVal)
-      } else {
-        indices.push(0)
-      }
-    }
-    return indices
   }
 
   private sameShape(other: Tensor): boolean {
