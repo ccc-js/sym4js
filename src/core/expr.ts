@@ -808,7 +808,18 @@ export function createAdd(a: Expression, b: Expression): Expression {
   } else {
     terms.push(b)
   }
-  return new Add(...terms)
+  const result = new Add(...terms)
+  const args = result.args
+
+  if (args.length === 1) {
+    const single = args[0]
+    if (single.type === 'integer' && (single as Integer).value === 0n) {
+      return Zero
+    }
+    return single
+  }
+
+  return result
 }
 
 function createSub(a: Expression, b: Expression): Expression {

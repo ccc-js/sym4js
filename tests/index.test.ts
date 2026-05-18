@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Symbol, Integer, Zero, One, Two, Add, Mul, Pow, Neg, Div, substitute, simplify, expand, diff, Sin, Cos, Tan } from '../src/index.js'
+import { Symbol, Integer, Zero, One, Two, Add, Mul, Pow, Neg, Div, substitute, simplify, expand, diff, Sin, Cos, Tan, createAdd } from '../src/index.js'
 
 describe('Symbol', () => {
   it('creates a symbol with valid name', () => {
@@ -96,6 +96,12 @@ describe('Add', () => {
     const result = new Add(x, Zero)
     expect(result.args.length).toBe(1)
     expect(result.args[0].equals(x)).toBe(true)
+  })
+
+  it('returns Integer when adding zero to an integer via factory', () => {
+    const result = createAdd(Zero, new Integer(6))
+    expect(result instanceof Integer).toBe(true)
+    expect(result.equals(new Integer(6))).toBe(true)
   })
 })
 

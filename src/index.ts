@@ -14,12 +14,16 @@ import {
   isZero,
   isOne,
   isNegativeOne,
+  createAdd,
 } from './core/expr.js'
 import { substitute } from './operations/substitute.js'
 import { simplify } from './operations/simplify.js'
 import { expand } from './operations/expand.js'
+import { factor } from './operations/factor.js'
 import { diff } from './operations/diff.js'
-import { Sin, Cos, Tan, Log, Exp } from './functions/trig.js'
+import { integrate } from './operations/integrate.js'
+import { limit } from './operations/limit.js'
+import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp } from './functions/trig.js'
 
 export {
   Symbol,
@@ -37,13 +41,20 @@ export {
   isZero,
   isOne,
   isNegativeOne,
+  createAdd,
   substitute,
   simplify,
   expand,
+  factor,
   diff,
+  integrate,
+  limit,
   Sin,
   Cos,
   Tan,
+  Cot,
+  Sec,
+  Csc,
   Log,
   Exp,
 }
@@ -71,12 +82,21 @@ const sym4js = {
   substitute,
   simplify,
   expand,
+  factor,
   diff,
+  integrate,
+  limit,
   sympify,
   symbols,
+  createAdd,
   Sin,
   Cos,
   Tan,
+  Cot,
+  Sec,
+  Csc,
+  Log,
+  Exp,
 }
 
 export default sym4js

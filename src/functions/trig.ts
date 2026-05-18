@@ -282,4 +282,169 @@ export class Exp implements Expression {
   }
 }
 
-export default { Sin, Cos, Tan, Log, Exp }
+export class Cot implements Expression {
+  readonly type = 'cot' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'cot' && this.arg.equals((other as Cot).arg)
+  }
+
+  toJSON() {
+    return { type: 'cot', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Cot {
+    return new Cot(this.arg.clone())
+  }
+
+  toString(): string {
+    return `cot(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export class Sec implements Expression {
+  readonly type = 'sec' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'sec' && this.arg.equals((other as Sec).arg)
+  }
+
+  toJSON() {
+    return { type: 'sec', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Sec {
+    return new Sec(this.arg.clone())
+  }
+
+  toString(): string {
+    return `sec(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export class Csc implements Expression {
+  readonly type = 'csc' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'csc' && this.arg.equals((other as Csc).arg)
+  }
+
+  toJSON() {
+    return { type: 'csc', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Csc {
+    return new Csc(this.arg.clone())
+  }
+
+  toString(): string {
+    return `csc(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export default { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp }
