@@ -32,6 +32,9 @@ import {
 import { Matrix } from './matrix/matrix.js'
 import { series, taylor, maclaurin } from './series/series.js'
 import { Poly, polyGcd, polyLcm } from './polynomial/poly.js'
+import { dsolve } from './operations/odesolve.js'
+import { Tensor } from './tensor/tensor.js'
+import { summation } from './operations/sum.js'
 
 export {
   Symbol,
@@ -84,6 +87,9 @@ export {
   Poly,
   polyGcd,
   polyLcm,
+  dsolve,
+  Tensor,
+  summation,
 }
 
 export function sympify(value: string | number): Expression {
@@ -143,6 +149,9 @@ const sym4js = {
   Poly,
   polyGcd,
   polyLcm,
+  dsolve,
+  Tensor,
+  summation,
 }
 
 export default sym4js
