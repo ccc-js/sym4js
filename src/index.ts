@@ -24,7 +24,12 @@ import { diff } from './operations/diff.js'
 import { integrate } from './operations/integrate.js'
 import { limit } from './operations/limit.js'
 import { solve, solveLinearSystem, solveODE } from './operations/solve.js'
-import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp } from './functions/trig.js'
+import {
+  Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp,
+  Asin, Acos, Atan, Sinh, Cosh, Tanh,
+} from './functions/trig.js'
+import { Matrix } from './matrix/matrix.js'
+import { series, taylor, maclaurin } from './series/series.js'
 
 export {
   Symbol,
@@ -61,6 +66,16 @@ export {
   Csc,
   Log,
   Exp,
+  Asin,
+  Acos,
+  Atan,
+  Sinh,
+  Cosh,
+  Tanh,
+  Matrix,
+  series,
+  taylor,
+  maclaurin,
 }
 
 export function sympify(value: string | number): Expression {
@@ -104,6 +119,16 @@ const sym4js = {
   Csc,
   Log,
   Exp,
+  Asin,
+  Acos,
+  Atan,
+  Sinh,
+  Cosh,
+  Tanh,
+  Matrix,
+  series,
+  taylor,
+  maclaurin,
 }
 
 export default sym4js
