@@ -416,7 +416,7 @@ export class Mul implements Expression {
     for (const arg of args) {
       if (arg.type === 'mul') {
         for (const a of (arg as Mul).args) {
-          Mul.addFactor(powerMap, a, coeff)
+          Mul.addFactor(powerMap, a)
         }
       } else if (arg.type === 'integer') {
         coeff *= (arg as Integer).value
@@ -425,33 +425,29 @@ export class Mul implements Expression {
         if (neg.arg.type === 'integer') {
           coeff *= -(neg.arg as Integer).value
         } else {
-          Mul.addFactor(powerMap, arg, coeff)
+          Mul.addFactor(powerMap, arg)
         }
       } else {
-        Mul.addFactor(powerMap, arg, coeff)
+        Mul.addFactor(powerMap, arg)
       }
     }
 
     return Mul.buildResult(powerMap, coeff)
   }
 
-  private static addFactor(
-    powerMap: Map<string, Expression>,
-    arg: Expression,
-    mult: bigint
-  ): void {
+  private static addFactor(powerMap: Map<string, Expression>, arg: Expression): void {
     const [base, exp] = asBaseExp(arg)
     let expVal = 1n
 
     if (exp.type === 'integer') {
-      expVal = (exp as Integer).value * mult
+      expVal = (exp as Integer).value
     } else {
-      Mul.addNonIntExp(powerMap, base, exp, mult)
+      Mul.addNonIntExp(powerMap, base, exp)
       return
     }
 
     if (base.type === 'integer') {
-      Mul.addNonIntExp(powerMap, base, new Integer(expVal), 1n)
+      Mul.addNonIntExp(powerMap, base, new Integer(expVal))
       return
     }
 
@@ -487,15 +483,8 @@ export class Mul implements Expression {
   private static addNonIntExp(
     powerMap: Map<string, Expression>,
     base: Expression,
-    exp: Expression,
-    mult: bigint
+    exp: Expression
   ): void {
-    if (base.type === 'integer') {
-      if (mult !== 1n) {
-        exp = new Integer(mult).mul(exp)
-      }
-    }
-
     const key = `pow:${symbolKey(base)}:${symbolKey(exp)}`
     const existing = powerMap.get(key)
     if (existing) {

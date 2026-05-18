@@ -228,7 +228,7 @@ describe('simplify', () => {
     expect(result.equals(Two)).toBe(true)
   })
 
-  it.skip('simplifies x+x to 2*x (causes infinite loop - needs fix)', () => {
+  it('simplifies x+x to 2*x', () => {
     const x = new Symbol('x')
     const expr = new Add(x, x)
     const result = simplify(expr)
