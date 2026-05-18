@@ -56,6 +56,12 @@ interface Expression {
 
 - `substitute.ts` - 符號替換
 - `simplify.ts` - 表達式簡化
+- `expand.ts` - 代數展開
+- `diff.ts` - 微分
+
+### 函數模組 (src/functions/)
+
+- `trig.ts` - 三角函數 (Sin, Cos, Tan, Log, Exp)
 
 ### 設計原則
 
@@ -72,13 +78,13 @@ interface Expression {
   - `sympy/core/mul.py` - Mul 類別 (注意項合併邏輯)
   - `sympy/core/expr.py` - Expression 基類
 
-## 待完成功能 (v0.2)
+## 待完成功能 (v0.3)
 
-- [ ] 修復 `simplify(x+x)` 無限迴圈
-- [ ] 實現 `expand` - 代數展開
-- [ ] 實現 `factor` - 因式分解
-- [ ] 實現 `diff` - 微分
-- [ ] 添加三角函數支援 (sin, cos, tan)
+- [ ] 實現 factor - 因式分解
+- [ ] 實現 integrate - 積分
+- [ ] 實現 limit - 極限
+- [ ] 添加更多三角函數 (cot, sec, csc)
+- [ ] 改進 diff 的簡化邏輯
 
 ## 程式碼規範
 

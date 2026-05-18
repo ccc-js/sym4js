@@ -1,7 +1,7 @@
-export type ExprType = 'symbol' | 'integer' | 'add' | 'mul' | 'pow' | 'neg' | 'div'
+export type ExprType = string
 
 export interface ExprJSON {
-  type: ExprType
+  type: string
   args?: unknown[]
   name?: string
   value?: string | number

@@ -17,6 +17,9 @@ import {
 } from './core/expr.js'
 import { substitute } from './operations/substitute.js'
 import { simplify } from './operations/simplify.js'
+import { expand } from './operations/expand.js'
+import { diff } from './operations/diff.js'
+import { Sin, Cos, Tan, Log, Exp } from './functions/trig.js'
 
 export {
   Symbol,
@@ -36,6 +39,13 @@ export {
   isNegativeOne,
   substitute,
   simplify,
+  expand,
+  diff,
+  Sin,
+  Cos,
+  Tan,
+  Log,
+  Exp,
 }
 
 export function sympify(value: string | number): Expression {
@@ -60,8 +70,13 @@ const sym4js = {
   Div,
   substitute,
   simplify,
+  expand,
+  diff,
   sympify,
   symbols,
+  Sin,
+  Cos,
+  Tan,
 }
 
 export default sym4js

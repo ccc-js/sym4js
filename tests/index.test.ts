@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Symbol, Integer, Zero, One, Two, Add, Mul, Pow, Neg, Div, substitute, simplify } from '../src/index.js'
+import { Symbol, Integer, Zero, One, Two, Add, Mul, Pow, Neg, Div, substitute, simplify, expand, diff, Sin, Cos, Tan } from '../src/index.js'
 
 describe('Symbol', () => {
   it('creates a symbol with valid name', () => {
@@ -277,5 +277,86 @@ describe('JSON serialization', () => {
     const result = new Add(x, One).toJSON()
     expect(result.type).toBe('add')
     expect(result.args).toHaveLength(2)
+  })
+})
+
+describe('expand', () => {
+  it('expands (x+1)^2 to x^2 + 2x + 1', () => {
+    const x = new Symbol('x')
+    const expr = new Pow(new Add(x, One), new Integer(2))
+    const result = expand(expr)
+    expect(result.toString()).toMatch(/x\*\*2|2*x/)
+  })
+
+  it('expands x*(a+b) to x*a + x*b', () => {
+    const x = new Symbol('x')
+    const a = new Symbol('a')
+    const b = new Symbol('b')
+    const expr = x.mul(new Add(a, b))
+    const result = expand(expr)
+    expect(result.toString()).toMatch(/x\*a|x\*b/)
+  })
+})
+
+describe('diff', () => {
+  it('differentiates x^2 with respect to x', () => {
+    const x = new Symbol('x')
+    const expr = new Pow(x, new Integer(2))
+    const result = diff(expr, x)
+    expect(result.toString()).toBe('2*x')
+  })
+
+  it('differentiates sin(x) with respect to x', () => {
+    const x = new Symbol('x')
+    const expr = new Sin(x)
+    const result = diff(expr, x)
+    expect(result.toString()).toBe('cos(x)')
+  })
+
+  it('differentiates cos(x) with respect to x', () => {
+    const x = new Symbol('x')
+    const expr = new Cos(x)
+    const result = diff(expr, x)
+    expect(result.toString()).toBe('-sin(x)')
+  })
+
+  it('differentiates x^3 three times', () => {
+    const x = new Symbol('x')
+    const expr = new Pow(x, new Integer(3))
+    const result = diff(expr, x, 3)
+    expect(result.type).toBe('add')
+    const addResult = result as Add
+    expect(addResult.args.length).toBe(2)
+    const simplifiedResult = simplify(result)
+    expect(simplifiedResult.type).toBe('integer')
+    expect((simplifiedResult as Integer).value).toBe(6n)
+  })
+})
+
+describe('Trigonometric functions', () => {
+  it('creates Sin expression', () => {
+    const x = new Symbol('x')
+    const expr = new Sin(x)
+    expect(expr.toString()).toBe('sin(x)')
+    expect(expr.type).toBe('sin')
+  })
+
+  it('creates Cos expression', () => {
+    const x = new Symbol('x')
+    const expr = new Cos(x)
+    expect(expr.toString()).toBe('cos(x)')
+    expect(expr.type).toBe('cos')
+  })
+
+  it('creates Tan expression', () => {
+    const x = new Symbol('x')
+    const expr = new Tan(x)
+    expect(expr.toString()).toBe('tan(x)')
+    expect(expr.type).toBe('tan')
+  })
+
+  it('Sin and Cos are not equal', () => {
+    const x = new Symbol('x')
+    expect(new Sin(x).equals(new Cos(x))).toBe(false)
   })
 })

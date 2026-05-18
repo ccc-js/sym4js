@@ -796,7 +796,7 @@ export const Zero = new Integer(0)
 export const One = new Integer(1)
 export const Two = new Integer(2)
 
-function createAdd(a: Expression, b: Expression): Expression {
+export function createAdd(a: Expression, b: Expression): Expression {
   const terms: Expression[] = []
   if (a.type === 'add') {
     terms.push(...(a as Add).args)
@@ -850,7 +850,7 @@ function createPow(base: Expression, exp: Expression): Expression {
   return new Pow(base, exp)
 }
 
-function createNeg(arg: Expression): Expression {
+export function createNeg(arg: Expression): Expression {
   if (arg.type === 'neg') return (arg as Neg).arg
   if (arg.type === 'integer') {
     const i = arg as Integer
