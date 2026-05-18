@@ -147,7 +147,94 @@ function simplifyAdd(expr: Add): Expression {
   const filtered = simpArgs.filter((a) => !isZero(a))
   if (filtered.length === 0) return Zero
   if (filtered.length === 1) return filtered[0]
+
+  const identityResult = checkTrigIdentity(filtered)
+  if (identityResult !== null) return identityResult
+
   return new Add(...filtered)
+}
+
+function checkTrigIdentity(terms: Expression[]): Expression | null {
+  const sinTerms: Expression[] = []
+  const cosTerms: Expression[] = []
+  const sinhTerms: Expression[] = []
+  const coshTerms: Expression[] = []
+  const otherTerms: Expression[] = []
+
+  for (const term of terms) {
+    if (term.type === 'mul' && term.args.length === 2) {
+      const [coef, rest] = term.args
+      if (rest.type === 'pow') {
+        const p = rest as Pow
+        if (p.exp.type === 'integer' && (p.exp as Integer).value === 2n) {
+          if (p.base.type === 'sin') {
+            if (coef.type === 'integer' && (coef as Integer).value === 1n) {
+              sinTerms.push((p.base as Sin).arg)
+              continue
+            }
+          }
+          if (p.base.type === 'cos') {
+            if (coef.type === 'integer' && (coef as Integer).value === 1n) {
+              cosTerms.push((p.base as Cos).arg)
+              continue
+            }
+          }
+          if (p.base.type === 'sinh') {
+            if (coef.type === 'integer' && (coef as Integer).value === 1n) {
+              sinhTerms.push((p.base as Sinh).arg)
+              continue
+            }
+          }
+          if (p.base.type === 'cosh') {
+            if (coef.type === 'integer' && (coef as Integer).value === 1n) {
+              coshTerms.push((p.base as Cosh).arg)
+              continue
+            }
+          }
+        }
+      }
+    }
+
+    if (term.type === 'pow') {
+      const p = term as Pow
+      if (p.exp.type === 'integer' && (p.exp as Integer).value === 2n) {
+        if (p.base.type === 'sin') {
+          sinTerms.push((p.base as Sin).arg)
+          continue
+        }
+        if (p.base.type === 'cos') {
+          cosTerms.push((p.base as Cos).arg)
+          continue
+        }
+        if (p.base.type === 'sinh') {
+          sinhTerms.push((p.base as Sinh).arg)
+          continue
+        }
+        if (p.base.type === 'cosh') {
+          coshTerms.push((p.base as Cosh).arg)
+          continue
+        }
+      }
+    }
+
+    otherTerms.push(term)
+  }
+
+  if (sinTerms.length > 0 && cosTerms.length > 0) {
+    const sameArg = sinTerms.some(s => cosTerms.some(c => s.equals(c)))
+    if (sameArg && otherTerms.length === 0) {
+      return One
+    }
+  }
+
+  if (sinhTerms.length > 0 && coshTerms.length > 0) {
+    const sameArg = sinhTerms.some(s => coshTerms.some(c => s.equals(c)))
+    if (sameArg && otherTerms.length === 0) {
+      return One
+    }
+  }
+
+  return null
 }
 
 function simplifyMul(expr: Mul): Expression {

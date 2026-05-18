@@ -212,6 +212,57 @@ export class Poly {
     return terms.join(' + ').replace(/\+ -/g, '- ')
   }
 
+  roots(): bigint[] | null {
+    if (this.coeffs.length === 0) return null
+    if (this.degree() === 0) return []
+
+    const leadingCoeff = this.leadingCoeff()
+    if (leadingCoeff === 0n) {
+      const shifted = new Poly(this.coeffs.slice(0, -1), this.variable)
+      return shifted.roots()
+    }
+
+    if (this.degree() === 1) {
+      const [a, b] = this.coeffs
+      if (a === 0n) return null
+      return [-b / a]
+    }
+
+    if (this.degree() === 2) {
+      const [c, b, a] = this.coeffs
+      if (a === 0n) return null
+
+      const discriminant = b * b - 4n * a * c
+      if (discriminant < 0n) return []
+
+      const sqrtD = this.integerSqrt(discriminant)
+      if (sqrtD === null) return null
+
+      const twoA = 2n * a
+      return [(-b + sqrtD) / twoA, (-b - sqrtD) / twoA]
+    }
+
+    return null
+  }
+
+  private integerSqrt(n: bigint): bigint | null {
+    if (n < 0n) return null
+    if (n === 0n) return 0n
+    let low = 0n
+    let high = n
+    while (low <= high) {
+      const mid = (low + high) / 2n
+      const sq = mid * mid
+      if (sq === n) return mid
+      if (sq < n) {
+        low = mid + 1n
+      } else {
+        high = mid - 1n
+      }
+    }
+    return null
+  }
+
   clone(): Poly {
     return new Poly([...this.coeffs], this.variable)
   }

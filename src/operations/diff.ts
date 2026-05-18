@@ -13,7 +13,7 @@ import {
   createAdd,
   createNeg,
 } from '../core/expr.js'
-import { Sin, Cos, Tan, Log } from '../functions/trig.js'
+import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp, Sinh, Cosh, Tanh } from '../functions/trig.js'
 
 export function diff(expr: Expression, var_: Symbol, order: number = 1): Expression {
   if (order === 0) return expr
@@ -151,6 +151,48 @@ function diffOnce(expr: Expression, var_: Symbol): Expression {
     const arg = (expr as Tan).arg
     const sec2 = createAdd(One, new Pow(new Tan(arg), new Integer(2)))
     return new Mul(sec2, diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'cot') {
+    const arg = (expr as Cot).arg
+    const csc2 = createAdd(One, new Pow(new Cot(arg), new Integer(2)))
+    return createNeg(new Mul(csc2, diffOnce(arg, var_)))
+  }
+
+  if (expr.type === 'sec') {
+    const arg = (expr as Sec).arg
+    return new Mul(new Sec(arg), new Tan(arg)).mul(diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'csc') {
+    const arg = (expr as Csc).arg
+    return createNeg(new Mul(new Csc(arg), new Cot(arg))).mul(diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'sinh') {
+    const arg = (expr as Sinh).arg
+    return new Cosh(arg).mul(diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'cosh') {
+    const arg = (expr as Cosh).arg
+    return new Sinh(arg).mul(diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'tanh') {
+    const arg = (expr as Tanh).arg
+    const sech2 = createNeg(new Pow(new Tanh(arg), new Integer(2))).add(One)
+    return new Mul(sech2, diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'exp') {
+    const arg = (expr as Exp).arg
+    return new Exp(arg).mul(diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'log') {
+    const arg = expr.args[0]
+    return new Div(diffOnce(arg, var_), arg)
   }
 
   return expr

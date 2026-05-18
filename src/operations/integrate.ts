@@ -11,7 +11,8 @@ import {
   createAdd,
   createNeg,
 } from '../core/expr.js'
-import { Sin, Cos, Log } from '../functions/trig.js'
+import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp, Sinh, Cosh } from '../functions/trig.js'
+import { diff } from './diff.js'
 
 export function integrate(
   expr: Expression,
@@ -77,12 +78,62 @@ function integrateExpr(expr: Expression, var_: Symbol): Expression {
 
   if (expr.type === 'sin') {
     const arg = expr.args[0]
-    return new Neg(new Cos(arg))
+    const chainFactor = diff(arg, var_)
+    return new Div(new Neg(new Cos(arg)), chainFactor)
   }
 
   if (expr.type === 'cos') {
     const arg = expr.args[0]
-    return new Sin(arg)
+    const chainFactor = diff(arg, var_)
+    return new Div(new Sin(arg), chainFactor)
+  }
+
+  if (expr.type === 'tan') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Neg(new Log(new Cos(arg))), chainFactor)
+  }
+
+  if (expr.type === 'cot') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Log(new Sin(arg)), chainFactor)
+  }
+
+  if (expr.type === 'sec') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Log(new Add(new Sec(arg), new Tan(arg))), chainFactor)
+  }
+
+  if (expr.type === 'csc') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Neg(new Log(new Add(new Csc(arg), new Cot(arg)))), chainFactor)
+  }
+
+  if (expr.type === 'sinh') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Cosh(arg), chainFactor)
+  }
+
+  if (expr.type === 'cosh') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Sinh(arg), chainFactor)
+  }
+
+  if (expr.type === 'tanh') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Log(new Cosh(arg)), chainFactor)
+  }
+
+  if (expr.type === 'exp') {
+    const arg = expr.args[0]
+    const chainFactor = diff(arg, var_)
+    return new Div(new Exp(arg), chainFactor)
   }
 
   return expr
