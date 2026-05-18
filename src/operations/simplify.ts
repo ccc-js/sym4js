@@ -139,6 +139,45 @@ function simplifyImpl(expr: Expression): Expression {
     return new Atanh(simpArg)
   }
 
+  if (expr.type === 'sin' && expr.args[0].type === 'mul') {
+    const mul = expr.args[0] as Mul
+    if (mul.args.length === 2) {
+      const [coef, arg] = mul.args
+      if (coef.type === 'integer' && (coef as Integer).value === 2n) {
+        return new Mul(new Integer(2), new Sin(arg), new Cos(arg))
+      }
+    }
+  }
+
+  if (expr.type === 'cos' && expr.args[0].type === 'mul') {
+    const mul = expr.args[0] as Mul
+    if (mul.args.length === 2) {
+      const [coef, arg] = mul.args
+      if (coef.type === 'integer' && (coef as Integer).value === 2n) {
+        const cosArg = new Cos(arg)
+        const sinArg = new Sin(arg)
+        return new Add(
+          new Pow(cosArg, new Integer(2)),
+          new Neg(new Pow(sinArg, new Integer(2)))
+        )
+      }
+    }
+  }
+
+  if (expr.type === 'tan' && expr.args[0].type === 'mul') {
+    const mul = expr.args[0] as Mul
+    if (mul.args.length === 2) {
+      const [coef, arg] = mul.args
+      if (coef.type === 'integer' && (coef as Integer).value === 2n) {
+        const tanArg = new Tan(arg)
+        return new Div(
+          new Mul(new Integer(2), tanArg),
+          new Add(One, new Neg(new Pow(tanArg, new Integer(2))))
+        )
+      }
+    }
+  }
+
   return expr
 }
 

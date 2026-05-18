@@ -263,6 +263,148 @@ export class Poly {
     return null
   }
 
+  rationalRoots(): (bigint | null)[] | null {
+    if (this.isZero()) return null
+    if (this.degree() <= 0) return []
+
+    const a = this.leadingCoeff()
+    const b = this.constant()
+
+    if (a === 0n) {
+      const shifted = new Poly(this.coeffs.slice(0, -1), this.variable)
+      return shifted.rationalRoots()
+    }
+
+    const candidates: bigint[] = []
+    const aDivisors = this.divisors(a < 0n ? -a : a)
+    const bDivisors = this.divisors(b < 0n ? -b : b)
+
+    for (const p of bDivisors) {
+      for (const q of aDivisors) {
+        if (q !== 0n) {
+          candidates.push(p / q)
+          candidates.push(-p / q)
+        }
+      }
+    }
+
+    const roots: (bigint | null)[] = []
+    for (const candidate of candidates) {
+      if (this.evaluate(candidate) === 0n) {
+        roots.push(candidate)
+      }
+    }
+
+    return roots
+  }
+
+  private divisors(n: bigint): bigint[] {
+    const divs: bigint[] = []
+    for (let i = 1n; i * i <= n; i++) {
+      if (n % i === 0n) {
+        divs.push(i)
+        if (i * i !== n) {
+          divs.push(n / i)
+        }
+      }
+    }
+    return divs.sort((a, b) => a < b ? -1 : 1)
+  }
+
+  newtonRaphson(guess: number, tolerance: number = 1e-10, maxIter: number = 100): number | null {
+    if (this.degree() === 0) return null
+
+    const deriv = this.derivative()
+    let x = guess
+
+    for (let i = 0; i < maxIter; i++) {
+      const fx = Number(this.evaluate(x))
+      if (Math.abs(fx) < tolerance) {
+        return x
+      }
+
+      const dfx = Number(deriv.evaluate(x))
+      if (Math.abs(dfx) < 1e-15) {
+        return null
+      }
+
+      x = x - fx / dfx
+    }
+
+    return null
+  }
+
+  allRoots(tolerance: number = 1e-10): (number | null)[] {
+    if (this.isZero()) return []
+    if (this.degree() <= 0) return []
+
+    const rational = this.rationalRoots()
+    const results: (number | null)[] = []
+
+    if (rational && rational.length > 0) {
+      for (const r of rational) {
+        if (r !== null) {
+          results.push(Number(r))
+        }
+      }
+    }
+
+    const deflated = this.deflateKnownRoots(results.filter(r => r !== null) as number[])
+
+    if (deflated.degree() === 0) {
+      return results
+    }
+
+    if (deflated.degree() === 1) {
+      const [a, b] = deflated.coeffs
+      if (a !== 0n) {
+        results.push(Number(-b) / Number(a))
+      }
+      return results
+    }
+
+    if (deflated.degree() === 2) {
+      const roots = deflated.roots()
+      if (roots) {
+        for (const r of roots) {
+          results.push(Number(r))
+        }
+      }
+      return results
+    }
+
+    const guesses = this.generateGuesses(deflated.degree())
+    for (const g of guesses) {
+      const root = deflated.newtonRaphson(g, tolerance)
+      if (root !== null) {
+        results.push(root)
+      }
+    }
+
+    return results
+  }
+
+  private deflateKnownRoots(knownRoots: number[]): Poly {
+    let result = this.clone()
+    for (const r of knownRoots) {
+      const rootPoly = new Poly([-r, 1n], this.variable)
+      const { quotient } = result.div(rootPoly)
+      result = quotient
+    }
+    return result
+  }
+
+  private generateGuesses(n: number): number[] {
+    const guesses: number[] = []
+    for (let i = 1; i <= n; i++) {
+      guesses.push(i)
+      guesses.push(-i)
+      guesses.push(i * 0.5)
+      guesses.push(-i * 0.5)
+    }
+    return guesses
+  }
+
   clone(): Poly {
     return new Poly([...this.coeffs], this.variable)
   }
