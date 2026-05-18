@@ -77,12 +77,12 @@ function integrateExpr(expr: Expression, var_: Symbol): Expression {
   }
 
   if (expr.type === 'sin') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Neg(new Cos(arg))
   }
 
   if (expr.type === 'cos') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Sin(arg)
   }
 

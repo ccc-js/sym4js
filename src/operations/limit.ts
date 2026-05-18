@@ -51,19 +51,19 @@ function substituteAll(expr: Expression, var_: Symbol, point: Expression): Expre
     )
   }
   if (expr.type === 'sin') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Sin(substituteAll(arg, var_, point))
   }
   if (expr.type === 'cos') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Cos(substituteAll(arg, var_, point))
   }
   if (expr.type === 'log') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Log(substituteAll(arg, var_, point))
   }
   if (expr.type === 'exp') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Exp(substituteAll(arg, var_, point))
   }
   return expr
