@@ -1,4 +1,4 @@
-import { Integer, Expression, Zero, One } from '../core/expr.js'
+import { Integer, Expression, Zero, One, Pow } from '../core/expr.js'
 
 export class Matrix {
   readonly rows: number
@@ -198,6 +198,225 @@ export class Matrix {
       data.push(row)
     }
     return new Matrix(data)
+  }
+
+  lu(): { L: Matrix; U: Matrix } | null {
+    if (this.rows !== this.cols) {
+      return null
+    }
+    const n = this.rows
+    const L: Expression[][] = []
+    const U: Expression[][] = []
+
+    for (let i = 0; i < n; i++) {
+      L.push([])
+      U.push([])
+      for (let j = 0; j < n; j++) {
+        L[i].push(Zero)
+        U[i].push(Zero)
+      }
+      L[i][i] = One
+    }
+
+    for (let k = 0; k < n; k++) {
+      for (let j = k; j < n; j++) {
+        let sum: Expression = Zero
+        for (let s = 0; s < k; s++) {
+          sum = sum.add(L[k][s].mul(U[s][j]))
+        }
+        U[k][j] = this.data[k][j].sub(sum)
+      }
+      for (let i = k + 1; i < n; i++) {
+        if (U[k][k].type === 'integer' && (U[k][k] as Integer).value === 0n) {
+          return null
+        }
+        let sum: Expression = Zero
+        for (let s = 0; s < k; s++) {
+          sum = sum.add(L[i][s].mul(U[s][k]))
+        }
+        L[i][k] = this.data[i][k].sub(sum).div(U[k][k])
+      }
+    }
+
+    return { L: new Matrix(L), U: new Matrix(U) }
+  }
+
+  qr(): { Q: Matrix; R: Matrix } | null {
+    if (this.rows < this.cols) {
+      return null
+    }
+    const m = this.rows
+    const n = this.cols
+    const Q: Expression[][] = []
+    const R: Expression[][] = []
+
+    for (let i = 0; i < m; i++) {
+      Q.push([])
+      for (let j = 0; j < n; j++) {
+        Q[i].push(Zero)
+      }
+    }
+
+    for (let j = 0; j < n; j++) {
+      R.push([])
+      for (let k = 0; k < n; k++) {
+        R[j].push(Zero)
+      }
+    }
+
+    for (let j = 0; j < n; j++) {
+      const v: Expression[] = []
+      for (let i = 0; i < m; i++) {
+        v.push(this.data[i][j])
+      }
+
+      for (let k = 0; k < j; k++) {
+        let dot: Expression = Zero
+        for (let i = 0; i < m; i++) {
+          dot = dot.add(Q[i][k].mul(this.data[i][j]))
+        }
+        R[k][j] = dot
+        for (let i = 0; i < m; i++) {
+          v[i] = v[i].sub(Q[i][k].mul(dot))
+        }
+      }
+
+      let normSq: Expression = Zero
+      for (let i = 0; i < m; i++) {
+        normSq = normSq.add(v[i].mul(v[i]))
+      }
+
+      if (normSq.type === 'integer' && (normSq as Integer).value === 0n) {
+        return null
+      }
+
+      R[j][j] = new Pow(normSq, new Integer(1).div(new Integer(2)))
+
+      for (let i = 0; i < m; i++) {
+        Q[i][j] = v[i].div(R[j][j])
+      }
+
+      for (let k = j + 1; k < n; k++) {
+        R[j][k] = Zero
+      }
+    }
+
+    return { Q: new Matrix(Q), R: new Matrix(R) }
+  }
+
+  eigenvalues(): Expression[] | null {
+    if (this.rows !== this.cols || this.rows > 3) {
+      return null
+    }
+    const n = this.rows
+
+    if (n === 1) {
+      return [this.data[0][0]]
+    }
+
+    if (n === 2) {
+      const a = this.data[0][0]
+      const b = this.data[0][1]
+      const c = this.data[1][0]
+      const d = this.data[1][1]
+
+      const trace = a.add(d)
+      const det = a.mul(d).sub(b.mul(c))
+
+      const four = new Integer(4)
+      const discriminant = trace.mul(trace).sub(four.mul(det))
+
+      if (discriminant.type === 'integer') {
+        const disc = (discriminant as Integer).value
+        if (disc > 0n) {
+          const sqrtDisc = this.integerSqrt(disc)
+          if (sqrtDisc !== null) {
+            const two = new Integer(2)
+            const root1 = trace.add(new Integer(sqrtDisc)).div(two)
+            const root2 = trace.sub(new Integer(sqrtDisc)).div(two)
+            return [root1, root2]
+          }
+        } else if (disc === 0n) {
+          return [trace.div(new Integer(2))]
+        }
+      }
+
+      return null
+    }
+
+    if (n === 3) {
+      const a = this.data[0][0]
+      const b = this.data[0][1]
+      const c = this.data[0][2]
+      const d = this.data[1][0]
+      const e = this.data[1][1]
+      const f = this.data[1][2]
+      const g = this.data[2][0]
+      const h = this.data[2][1]
+      const i = this.data[2][2]
+
+      const A = a.negate()
+      const B = a.mul(e).sub(b.mul(d)).add(e.negate()).add(i.negate())
+      const C = a.mul(e.mul(i).sub(f.mul(h))).add(b.mul(d.mul(i).sub(f.mul(g)))).add(c.mul(d.mul(h).sub(e.mul(g))))
+
+      if (A.type === 'integer' && B.type === 'integer' && C.type === 'integer') {
+        return this.solveCubic(A as Integer, B as Integer, C as Integer)
+      }
+    }
+
+    return null
+  }
+
+  private integerSqrt(n: bigint): bigint | null {
+    if (n < 0n) return null
+    if (n === 0n) return 0n
+    let low = 0n
+    let high = n
+    while (low <= high) {
+      const mid = (low + high) / 2n
+      const sq = mid * mid
+      if (sq === n) return mid
+      if (sq < n) {
+        low = mid + 1n
+      } else {
+        high = mid - 1n
+      }
+    }
+    return null
+  }
+
+  private solveCubic(a: Integer, b: Integer, c: Integer): Expression[] | null {
+    const A = a.value
+    const B = b.value
+    const C = c.value
+
+    if (A === 0n) return null
+
+    const discriminant = (B * B) / 4n - (A * A * A) / 27n
+
+    if (discriminant > 0n) {
+      const sqrtD = this.integerSqrt(discriminant)
+      if (sqrtD === null) return null
+
+      const temp1 = -B / (3n * A)
+      const u = this.integerSqrt((A * A) / 3n)
+      if (u === null) return null
+
+      const acosArg = (3n * C) / (2n * A * u) - (B * B * B) / (27n * A * A * A)
+      const acosVal = acosArg > 2n ? 2n : acosArg < -2n ? -2n : acosArg
+
+      const theta = Math.acos(Number(acosVal))
+      const root1 = new Integer(temp1).add(new Integer(u).mul(new Integer(Math.cos(theta / 3))))
+      const root2 = new Integer(temp1).add(new Integer(u).mul(new Integer(Math.cos((theta + 2 * Math.PI) / 3))))
+      const root3 = new Integer(temp1).add(new Integer(u).mul(new Integer(Math.cos((theta + 4 * Math.PI) / 3))))
+
+      return [root1, root2, root3]
+    } else if (discriminant === 0n) {
+      const root = new Integer(-(B / (3n * A)))
+      return [root, root.negate().div(new Integer(2))]
+    }
+
+    return null
   }
 }
 

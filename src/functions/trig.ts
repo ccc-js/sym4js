@@ -777,4 +777,169 @@ export class Tanh implements Expression {
   }
 }
 
-export default { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp, Asin, Acos, Atan, Sinh, Cosh, Tanh }
+export class Asinh implements Expression {
+  readonly type = 'asinh' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'asinh' && this.arg.equals((other as Asinh).arg)
+  }
+
+  toJSON() {
+    return { type: 'asinh', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Asinh {
+    return new Asinh(this.arg.clone())
+  }
+
+  toString(): string {
+    return `asinh(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export class Acosh implements Expression {
+  readonly type = 'acosh' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'acosh' && this.arg.equals((other as Acosh).arg)
+  }
+
+  toJSON() {
+    return { type: 'acosh', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Acosh {
+    return new Acosh(this.arg.clone())
+  }
+
+  toString(): string {
+    return `acosh(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export class Atanh implements Expression {
+  readonly type = 'atanh' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'atanh' && this.arg.equals((other as Atanh).arg)
+  }
+
+  toJSON() {
+    return { type: 'atanh', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Atanh {
+    return new Atanh(this.arg.clone())
+  }
+
+  toString(): string {
+    return `atanh(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export default { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp, Asin, Acos, Atan, Sinh, Cosh, Tanh, Asinh, Acosh, Atanh }

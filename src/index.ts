@@ -27,9 +27,11 @@ import { solve, solveLinearSystem, solveODE } from './operations/solve.js'
 import {
   Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp,
   Asin, Acos, Atan, Sinh, Cosh, Tanh,
+  Asinh, Acosh, Atanh,
 } from './functions/trig.js'
 import { Matrix } from './matrix/matrix.js'
 import { series, taylor, maclaurin } from './series/series.js'
+import { Poly, polyGcd, polyLcm } from './polynomial/poly.js'
 
 export {
   Symbol,
@@ -72,10 +74,16 @@ export {
   Sinh,
   Cosh,
   Tanh,
+  Asinh,
+  Acosh,
+  Atanh,
   Matrix,
   series,
   taylor,
   maclaurin,
+  Poly,
+  polyGcd,
+  polyLcm,
 }
 
 export function sympify(value: string | number): Expression {
@@ -125,10 +133,16 @@ const sym4js = {
   Sinh,
   Cosh,
   Tanh,
+  Asinh,
+  Acosh,
+  Atanh,
   Matrix,
   series,
   taylor,
   maclaurin,
+  Poly,
+  polyGcd,
+  polyLcm,
 }
 
 export default sym4js
