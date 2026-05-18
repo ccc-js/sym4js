@@ -7,7 +7,6 @@ import {
   Pow,
   Neg,
   Div,
-  Zero,
   One,
   createAdd,
   createNeg,

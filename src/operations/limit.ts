@@ -9,7 +9,6 @@ import {
   Div,
   Zero,
   One,
-  isZero,
   createAdd,
   createNeg,
 } from '../core/expr.js'
@@ -142,19 +141,19 @@ function diffSimple(expr: Expression, var_: Symbol): Expression {
     return expr
   }
   if (expr.type === 'sin') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Cos(arg)
   }
   if (expr.type === 'cos') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return createNeg(new Sin(arg))
   }
   if (expr.type === 'exp') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Exp(arg)
   }
   if (expr.type === 'log') {
-    const arg = (expr as { arg: Expression }).arg
+    const arg = expr.args[0]
     return new Div(One, arg)
   }
   return Zero

@@ -23,6 +23,7 @@ import { factor } from './operations/factor.js'
 import { diff } from './operations/diff.js'
 import { integrate } from './operations/integrate.js'
 import { limit } from './operations/limit.js'
+import { solve, solveLinearSystem, solveODE } from './operations/solve.js'
 import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp } from './functions/trig.js'
 
 export {
@@ -49,6 +50,9 @@ export {
   diff,
   integrate,
   limit,
+  solve,
+  solveLinearSystem,
+  solveODE,
   Sin,
   Cos,
   Tan,
@@ -86,6 +90,9 @@ const sym4js = {
   diff,
   integrate,
   limit,
+  solve,
+  solveLinearSystem,
+  solveODE,
   sympify,
   symbols,
   createAdd,
