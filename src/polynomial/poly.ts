@@ -1,4 +1,4 @@
-import { Integer, Symbol, Expression, Add, Mul, Pow } from '../core/expr.js'
+import { Integer, Symbol, Expression, Add, Mul, Pow, Neg } from '../core/expr.js'
 
 export class Poly {
   coeffs: bigint[]
@@ -234,8 +234,112 @@ export class Poly {
     return expr
   }
 
-  static fromExpression(): Poly | null {
+  static fromExpression(expr: Expression, variable: Symbol = new Symbol('x')): Poly | null {
+    try {
+      const coeffs = this.exprToCoeffs(expr, variable)
+      if (coeffs === null) return null
+      return new Poly(coeffs, variable)
+    } catch {
+      return null
+    }
+  }
+
+  private static exprToCoeffs(expr: Expression, variable: Symbol): bigint[] | null {
+    if (expr.type === 'integer') {
+      return [(expr as Integer).value]
+    }
+
+    if (expr.type === 'symbol') {
+      const s = expr as Symbol
+      if (s.name === variable.name) {
+        return [0n, 1n]
+      }
+      return [1n]
+    }
+
+    if (expr.type === 'neg') {
+      const neg = expr as Neg
+      const innerCoeffs = this.exprToCoeffs(neg.arg, variable)
+      if (innerCoeffs === null) return null
+      return innerCoeffs.map(c => -c)
+    }
+
+    if (expr.type === 'add') {
+      const add = expr as Add
+      let result: bigint[] = [0n]
+      for (const arg of add.args) {
+        const argCoeffs = this.exprToCoeffs(arg, variable)
+        if (argCoeffs === null) return null
+        result = this.addCoeffs(result, argCoeffs)
+      }
+      return result
+    }
+
+    if (expr.type === 'mul') {
+      const mul = expr as Mul
+      let result: bigint[] = [1n]
+      for (const arg of mul.args) {
+        const argCoeffs = this.exprToCoeffs(arg, variable)
+        if (argCoeffs === null) return null
+        result = this.mulCoeffs(result, argCoeffs)
+      }
+      return result
+    }
+
+    if (expr.type === 'pow') {
+      const p = expr as Pow
+      if (p.base.type === 'symbol' && (p.base as Symbol).name === variable.name) {
+        if (p.exp.type === 'integer') {
+          const n = (p.exp as Integer).value
+          if (n >= 0n && n <= 1000n) {
+            return this.powerCoeffs([0n, 1n], Number(n))
+          }
+        }
+      }
+      if (p.base.type === 'integer' && p.exp.type === 'integer') {
+        const baseVal = (p.base as Integer).value
+        const expVal = (p.exp as Integer).value
+        if (expVal >= 0n && expVal <= 1000n) {
+          return [baseVal ** expVal]
+        }
+      }
+    }
+
     return null
+  }
+
+  private static addCoeffs(a: bigint[], b: bigint[]): bigint[] {
+    const maxLen = Math.max(a.length, b.length)
+    const result: bigint[] = []
+    for (let i = 0; i < maxLen; i++) {
+      const aVal = i < a.length ? a[i] : 0n
+      const bVal = i < b.length ? b[i] : 0n
+      result.push(aVal + bVal)
+    }
+    return result
+  }
+
+  private static mulCoeffs(a: bigint[], b: bigint[]): bigint[] {
+    if (a.length === 1 && a[0] === 0n) return [0n]
+    if (b.length === 1 && b[0] === 0n) return [0n]
+    const resultLen = a.length + b.length - 1
+    const result: bigint[] = new Array(resultLen).fill(0n)
+    for (let i = 0; i < a.length; i++) {
+      for (let j = 0; j < b.length; j++) {
+        result[i + j] += a[i] * b[j]
+      }
+    }
+    return result
+  }
+
+  private static powerCoeffs(coeffs: bigint[], exp: number): bigint[] {
+    if (exp === 0) return [1n]
+    if (exp === 1) return [...coeffs]
+    let result: bigint[] = [1n]
+    for (let i = 0; i < exp; i++) {
+      result = this.mulCoeffs(result, coeffs)
+    }
+    return result
   }
 }
 

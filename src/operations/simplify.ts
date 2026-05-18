@@ -11,6 +11,7 @@ import {
   isZero,
   isOne,
 } from '../core/expr.js'
+import { Sin, Cos, Tan, Sinh, Cosh, Tanh, Asin, Acos, Atan, Asinh, Acosh, Atanh } from '../functions/trig.js'
 
 export function simplify(expr: Expression): Expression {
   const result = simplifyImpl(expr)
@@ -44,6 +45,98 @@ function simplifyImpl(expr: Expression): Expression {
 
   if (expr.type === 'div') {
     return simplifyDiv(expr as Div)
+  }
+
+  if (expr.type === 'sin') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'asin') return (simpArg as Asin).arg
+    if (simpArg.type === 'integer') {
+      const val = (simpArg as Integer).value
+      if (val === 0n) return Zero
+    }
+    return new Sin(simpArg)
+  }
+
+  if (expr.type === 'cos') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'acos') return (simpArg as Acos).arg
+    if (simpArg.type === 'integer') {
+      const val = (simpArg as Integer).value
+      if (val === 0n) return One
+    }
+    return new Cos(simpArg)
+  }
+
+  if (expr.type === 'tan') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'atan') return (simpArg as Atan).arg
+    return new Tan(simpArg)
+  }
+
+  if (expr.type === 'sinh') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'asinh') return (simpArg as Asinh).arg
+    if (simpArg.type === 'integer') {
+      const val = (simpArg as Integer).value
+      if (val === 0n) return Zero
+    }
+    return new Sinh(simpArg)
+  }
+
+  if (expr.type === 'cosh') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'acosh') return (simpArg as Acosh).arg
+    if (simpArg.type === 'integer') {
+      const val = (simpArg as Integer).value
+      if (val === 0n) return One
+    }
+    return new Cosh(simpArg)
+  }
+
+  if (expr.type === 'tanh') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'atanh') return (simpArg as Atanh).arg
+    if (simpArg.type === 'integer') {
+      const val = (simpArg as Integer).value
+      if (val === 0n) return Zero
+    }
+    return new Tanh(simpArg)
+  }
+
+  if (expr.type === 'asin') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'sin') return (simpArg as Sin).arg
+    return new Asin(simpArg)
+  }
+
+  if (expr.type === 'acos') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'cos') return (simpArg as Cos).arg
+    return new Acos(simpArg)
+  }
+
+  if (expr.type === 'atan') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'tan') return (simpArg as Tan).arg
+    return new Atan(simpArg)
+  }
+
+  if (expr.type === 'asinh') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'sinh') return (simpArg as Sinh).arg
+    return new Asinh(simpArg)
+  }
+
+  if (expr.type === 'acosh') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'cosh') return (simpArg as Cosh).arg
+    return new Acosh(simpArg)
+  }
+
+  if (expr.type === 'atanh') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'tanh') return (simpArg as Tanh).arg
+    return new Atanh(simpArg)
   }
 
   return expr

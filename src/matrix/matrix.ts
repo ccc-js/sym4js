@@ -367,6 +367,49 @@ export class Matrix {
     return null
   }
 
+  eigenvectors(): { eigenvalue: Expression; eigenvector: Matrix }[] | null {
+    const eigenvals = this.eigenvalues()
+    if (eigenvals === null) return null
+
+    const result: { eigenvalue: Expression; eigenvector: Matrix }[] = []
+
+    for (const lambda of eigenvals) {
+      const eigenvector = this.findEigenvector(lambda)
+      if (eigenvector !== null) {
+        result.push({ eigenvalue: lambda, eigenvector })
+      }
+    }
+
+    return result.length > 0 ? result : null
+  }
+
+  private findEigenvector(lambda: Expression): Matrix | null {
+    if (this.rows === 2) {
+      const a = this.data[0][0]
+      const b = this.data[0][1]
+      const c = this.data[1][0]
+      const d = this.data[1][1]
+
+      let v1: Expression
+      let v2: Expression
+
+      if (b.type === 'integer' && (b as Integer).value !== 0n) {
+        v1 = b
+        v2 = lambda.sub(a)
+      } else if (c.type === 'integer' && (c as Integer).value !== 0n) {
+        v1 = lambda.sub(d)
+        v2 = c
+      } else {
+        v1 = One
+        v2 = Zero
+      }
+
+      return new Matrix([[v1], [v2]])
+    }
+
+    return null
+  }
+
   private integerSqrt(n: bigint): bigint | null {
     if (n < 0n) return null
     if (n === 0n) return 0n
