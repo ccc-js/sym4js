@@ -250,4 +250,169 @@ export class Legendre implements Expression {
   }
 }
 
-export default { Gamma, Beta, Bessel, Legendre }
+export class Erf implements Expression {
+  readonly type = 'erf' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'erf' && this.arg.equals((other as Erf).arg)
+  }
+
+  toJSON() {
+    return { type: 'erf', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Erf {
+    return new Erf(this.arg.clone())
+  }
+
+  toString(): string {
+    return `erf(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export class Erfc implements Expression {
+  readonly type = 'erfc' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'erfc' && this.arg.equals((other as Erfc).arg)
+  }
+
+  toJSON() {
+    return { type: 'erfc', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Erfc {
+    return new Erfc(this.arg.clone())
+  }
+
+  toString(): string {
+    return `erfc(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export class Psi implements Expression {
+  readonly type = 'psi' as const
+  readonly arg: Expression
+  readonly args: Expression[]
+
+  constructor(arg: Expression) {
+    this.arg = arg
+    this.args = [arg]
+  }
+
+  equals(other: Expression): boolean {
+    return other.type === 'psi' && this.arg.equals((other as Psi).arg)
+  }
+
+  toJSON() {
+    return { type: 'psi', args: [this.arg.toJSON()] }
+  }
+
+  clone(): Psi {
+    return new Psi(this.arg.clone())
+  }
+
+  toString(): string {
+    return `Psi(${this.arg.toString()})`
+  }
+
+  valueOf(): string {
+    return this.toString()
+  }
+
+  add(other: Expression): Expression {
+    return createAdd(this, other)
+  }
+
+  sub(other: Expression): Expression {
+    return createAdd(this, createNeg(other))
+  }
+
+  mul(other: Expression): Expression {
+    return new Mul(this, other)
+  }
+
+  div(other: Expression): Expression {
+    return new Div(this, other)
+  }
+
+  pow(other: Expression): Expression {
+    return new Pow(this, other)
+  }
+
+  negate(): Expression {
+    return createNeg(this)
+  }
+}
+
+export default { Gamma, Beta, Bessel, Legendre, Erf, Erfc, Psi }

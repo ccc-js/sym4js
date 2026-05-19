@@ -14,7 +14,7 @@ import {
   createNeg,
 } from '../core/expr.js'
 import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp, Sinh, Cosh, Tanh } from '../functions/trig.js'
-import { Gamma, Bessel, Legendre } from '../functions/special.js'
+import { Gamma, Bessel, Legendre, Erf, Erfc, Psi } from '../functions/special.js'
 
 export function diff(expr: Expression, var_: Symbol, order: number = 1): Expression {
   if (order === 0) return expr
@@ -238,6 +238,28 @@ function diffOnce(expr: Expression, var_: Symbol): Expression {
       }
     }
     return Zero
+  }
+
+  if (expr.type === 'erf') {
+    const erfExpr = expr as Erf
+    const arg = erfExpr.arg
+    const coeff = new Div(new Integer(2), new Pow(new Symbol('sqrt_pi'), One))
+    const innerExp = createNeg(new Pow(arg, new Integer(2)))
+    return new Mul(coeff, new Exp(innerExp), diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'erfc') {
+    const erfcExpr = expr as Erfc
+    const arg = erfcExpr.arg
+    const coeff = createNeg(new Div(new Integer(2), new Pow(new Symbol('sqrt_pi'), One)))
+    const innerExp = createNeg(new Pow(arg, new Integer(2)))
+    return new Mul(coeff, new Exp(innerExp), diffOnce(arg, var_))
+  }
+
+  if (expr.type === 'psi') {
+    const psiExpr = expr as Psi
+    const arg = psiExpr.arg
+    return new Div(new Integer(1), arg)
   }
 
   return expr

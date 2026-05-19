@@ -10,6 +10,10 @@ export interface ODESolution {
 
 export function dsolve(equation: Expression, y: Symbol, options?: { initialConditions?: Map<Symbol, Expression>; constant?: Symbol }): ODESolution | null {
   const x = options?.constant || new Symbol('C')
+  const initialConditions = options?.initialConditions
+
+  let generalSolution: Expression | null = null
+  let method = ''
 
   if (equation.type === 'add') {
     const add = equation as Add
@@ -17,28 +21,111 @@ export function dsolve(equation: Expression, y: Symbol, options?: { initialCondi
 
     if (terms.length === 2) {
       const separableSol = solveSeparable(equation, y, x)
-      if (separableSol !== null) return separableSol
+      if (separableSol !== null) {
+        generalSolution = separableSol.general
+        method = separableSol.method
+      }
 
       const bernoulliSol = solveBernoulli(equation, y, x)
-      if (bernoulliSol !== null) return bernoulliSol
+      if (bernoulliSol !== null) {
+        generalSolution = bernoulliSol.general
+        method = bernoulliSol.method
+      }
 
       const riccatiSol = solveRiccati(equation, y, x)
-      if (riccatiSol !== null) return riccatiSol
+      if (riccatiSol !== null) {
+        generalSolution = riccatiSol.general
+        method = riccatiSol.method
+      }
 
       const linearSol = solveLinearFirstOrder(equation, y, x)
-      if (linearSol !== null) return linearSol
+      if (linearSol !== null) {
+        generalSolution = linearSol.general
+        method = linearSol.method
+      }
 
       const constCoeffSol = solveConstCoeffLinear(equation, y, x)
-      if (constCoeffSol !== null) return constCoeffSol
+      if (constCoeffSol !== null) {
+        generalSolution = constCoeffSol.general
+        method = constCoeffSol.method
+      }
     }
   }
 
   if (equation.type === 'mul') {
     const separableSol = solveSeparableMul(equation as Mul, y, x)
-    if (separableSol !== null) return separableSol
+    if (separableSol !== null) {
+      generalSolution = separableSol.general
+      method = separableSol.method
+    }
   }
 
-  return null
+  if (generalSolution === null) return null
+
+  if (initialConditions && initialConditions.size > 0) {
+    const particularSolution = applyInitialConditions(generalSolution, y, x, initialConditions)
+    if (particularSolution !== null) {
+      return {
+        general: generalSolution,
+        particular: particularSolution,
+        method: method + '_with_ivp'
+      }
+    }
+  }
+
+  return {
+    general: generalSolution,
+    method
+  }
+}
+
+function applyInitialConditions(
+  generalSolution: Expression,
+  y: Symbol,
+  x: Symbol,
+  initialConditions: Map<Symbol, Expression>
+): Expression | null {
+  const x0 = initialConditions.get(x)
+  const y0 = initialConditions.get(y)
+
+  if (x0 === undefined || y0 === undefined) return null
+
+  return substituteConstant(generalSolution, y0)
+}
+
+function substituteConstant(expr: Expression, value: Expression): Expression {
+  if (expr.type === 'symbol' && (expr as Symbol).name === 'C') {
+    return value
+  }
+
+  if (expr.type === 'mul') {
+    const mul = expr as Mul
+    const newArgs = mul.args.map(arg => substituteConstant(arg, value))
+    return new Mul(...newArgs)
+  }
+
+  if (expr.type === 'add') {
+    const add = expr as Add
+    const newArgs = add.args.map(arg => substituteConstant(arg, value))
+    return new Add(...newArgs)
+  }
+
+  if (expr.type === 'pow') {
+    const p = expr as Pow
+    return new Pow(substituteConstant(p.base, value), substituteConstant(p.exp, value))
+  }
+
+  if (expr.type === 'div') {
+    const d = expr as Div
+    return new Div(substituteConstant(d.numerator, value), substituteConstant(d.denominator, value))
+  }
+
+  if (expr.type === 'neg') {
+    const neg = expr as Neg
+    return createNeg(substituteConstant(neg.arg, value))
+  }
+
+  return expr
 }
 
 function solveLinearFirstOrder(equation: Expression, y: Symbol, x: Symbol): ODESolution | null {
