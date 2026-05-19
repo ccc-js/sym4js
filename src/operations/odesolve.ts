@@ -22,6 +22,9 @@ export function dsolve(equation: Expression, y: Symbol, options?: { initialCondi
       const bernoulliSol = solveBernoulli(equation, y, x)
       if (bernoulliSol !== null) return bernoulliSol
 
+      const riccatiSol = solveRiccati(equation, y, x)
+      if (riccatiSol !== null) return riccatiSol
+
       const linearSol = solveLinearFirstOrder(equation, y, x)
       if (linearSol !== null) return linearSol
 
@@ -284,6 +287,58 @@ function solveBernoulli(equation: Expression, y: Symbol, x: Symbol): ODESolution
     general: new Pow(uExpression, new Div(One, new Integer(n - 1n))),
     method: 'bernoulli'
   }
+}
+
+function solveRiccati(equation: Expression, y: Symbol, x: Symbol): ODESolution | null {
+  if (equation.type !== 'add') return null
+
+  const add = equation as Add
+  const terms = add.args
+
+  let dyTerm: Expression | null = null
+  let y2Term: Expression | null = null
+  let yTerm: Expression | null = null
+
+  for (const term of terms) {
+    const containsY = containsSymbol(term, y)
+    const containsDy = containsDifferential(term, y)
+
+    if (containsDy && !containsY && !containsYPower(term, y, 2n)) {
+      if (dyTerm === null) dyTerm = term
+    } else if (containsDy && containsY) {
+      const power = extractYPower(term, y)
+      if (power === 2n) {
+        if (y2Term === null) y2Term = term
+      } else if (power === 1n) {
+        if (yTerm === null) yTerm = term
+      }
+    }
+  }
+
+  if (dyTerm === null || y2Term === null) return null
+
+  const aCoeff = extractCoeffOf(y2Term, y)
+  const bCoeff = yTerm !== null ? extractCoeffOf(yTerm, y) : 0n
+
+  if (aCoeff === 0n) return null
+
+  const k = new Symbol('K')
+
+  return {
+    general: new Mul(new Div(createNeg(new Integer(bCoeff)), new Integer(aCoeff)), new Pow(new Add(x, k), new Integer(-1))),
+    method: 'riccati_quadratic'
+  }
+}
+
+function containsYPower(term: Expression, y: Symbol, power: bigint): boolean {
+  if (term.type === 'pow') {
+    const p = term as Pow
+    if (p.base.equals(y) && p.exp.type === 'integer') {
+      const expVal = (p.exp as Integer).value
+      return expVal === power
+    }
+  }
+  return false
 }
 
 function solveLinearFirstOrderForU(equation: Expression, u: Symbol, x: Symbol): ODESolution | null {

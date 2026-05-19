@@ -14,6 +14,7 @@ import {
   createNeg,
 } from '../core/expr.js'
 import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp, Sinh, Cosh, Tanh } from '../functions/trig.js'
+import { Gamma, Bessel, Legendre } from '../functions/special.js'
 
 export function diff(expr: Expression, var_: Symbol, order: number = 1): Expression {
   if (order === 0) return expr
@@ -193,6 +194,50 @@ function diffOnce(expr: Expression, var_: Symbol): Expression {
   if (expr.type === 'log') {
     const arg = expr.args[0]
     return new Div(diffOnce(arg, var_), arg)
+  }
+
+  if (expr.type === 'gamma') {
+    const gamma = expr as Gamma
+    const gammaArg = gamma.arg
+    const psiX = new Symbol(`Psi_${gammaArg.toString()}`)
+    return new Mul(new Gamma(gammaArg), psiX, diffOnce(gammaArg, var_))
+  }
+
+  if (expr.type === 'bessel') {
+    const bessel = expr as Bessel
+    const n = bessel.order
+    const x = bessel.arg
+
+    if (n.type === 'integer') {
+      const order = (n as Integer).value
+      if (order > 0n) {
+        const jNMinus1 = new Bessel(new Integer(order - 1n), x)
+        const jN = new Bessel(n, x)
+        const term = new Div(new Mul(new Integer(order), jN), x)
+        return createAdd(new Mul(jNMinus1, diffOnce(x, var_)), createNeg(new Mul(term, diffOnce(x, var_))))
+      }
+    }
+    return Zero
+  }
+
+  if (expr.type === 'legendre') {
+    const legendre = expr as Legendre
+    const n = legendre.n
+    const x = legendre.arg
+
+    if (n.type === 'integer') {
+      const order = (n as Integer).value
+      if (order > 0n) {
+        const pNMinus1 = new Legendre(new Integer(order - 1n), x)
+        const term1 = new Mul(new Integer(order), new Mul(x, pNMinus1))
+        const pNMinus2 = new Legendre(new Integer(order - 2n), x)
+        const term2 = new Mul(new Integer(order - 1n), pNMinus2)
+        const numerator = createAdd(term1, createNeg(term2))
+        const denominator = createNeg(new Pow(x, new Integer(2))).add(One)
+        return new Div(new Mul(numerator, diffOnce(x, var_)), denominator)
+      }
+    }
+    return Zero
   }
 
   return expr

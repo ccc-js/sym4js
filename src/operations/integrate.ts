@@ -12,6 +12,7 @@ import {
   createNeg,
 } from '../core/expr.js'
 import { Sin, Cos, Tan, Cot, Sec, Csc, Log, Exp, Sinh, Cosh } from '../functions/trig.js'
+import { Gamma, Bessel, Legendre } from '../functions/special.js'
 import { diff } from './diff.js'
 
 export function integrate(
@@ -134,6 +135,41 @@ function integrateExpr(expr: Expression, var_: Symbol): Expression {
     const arg = expr.args[0]
     const chainFactor = diff(arg, var_)
     return new Div(new Exp(arg), chainFactor)
+  }
+
+  if (expr.type === 'gamma') {
+    const gamma = expr as Gamma
+    const arg = gamma.arg
+    const incompleteGamma = new Symbol(`incomplete_gamma(${arg.toString()})`)
+    return incompleteGamma
+  }
+
+  if (expr.type === 'bessel') {
+    const bessel = expr as Bessel
+    const order = bessel.order
+    const arg = bessel.arg
+    const incompleteBessel = new Symbol(`integral_BesselJ(${order.toString()}, ${arg.toString()})`)
+    return incompleteBessel
+  }
+
+  if (expr.type === 'legendre') {
+    const legendre = expr as Legendre
+    const n = legendre.n
+    const arg = legendre.arg
+    if (n.type === 'integer') {
+      const order = (n as Integer).value
+      if (order > 1n) {
+        const pN = new Legendre(n, arg)
+        const pNMinus2 = new Legendre(new Integer(order - 2n), arg)
+        const coeff1 = new Div(new Integer(2 * Number(order)), new Integer(Number(order) ** 2 - 1))
+        const coeff2 = new Div(new Integer(-2), new Integer(Number(order) ** 2 - 1))
+        return new Add(new Mul(coeff1, pN), new Mul(coeff2, pNMinus2))
+      }
+      if (order === 1n) {
+        return new Div(new Pow(arg, new Integer(2)), new Integer(2))
+      }
+    }
+    return new Symbol(`integral_P${n.toString()}(${arg.toString()})`)
   }
 
   return expr
