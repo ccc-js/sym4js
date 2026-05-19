@@ -33,6 +33,10 @@ export class Sin implements Expression {
     return `sin(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\sin ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -86,6 +90,10 @@ export class Cos implements Expression {
 
   toString(): string {
     return `cos(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\cos ${this.arg.toString()}`
   }
 
   valueOf(): string {
@@ -143,6 +151,10 @@ export class Tan implements Expression {
     return `tan(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\tan ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -196,6 +208,10 @@ export class Log implements Expression {
 
   toString(): string {
     return `log(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\log ${this.arg.toString()}`
   }
 
   valueOf(): string {
@@ -253,6 +269,10 @@ export class Exp implements Expression {
     return `exp(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `e^{${this.arg.toString()}}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -306,6 +326,10 @@ export class Cot implements Expression {
 
   toString(): string {
     return `cot(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\cot ${this.arg.toString()}`
   }
 
   valueOf(): string {
@@ -363,6 +387,10 @@ export class Sec implements Expression {
     return `sec(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\sec ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -416,6 +444,10 @@ export class Csc implements Expression {
 
   toString(): string {
     return `csc(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\csc ${this.arg.toString()}`
   }
 
   valueOf(): string {
@@ -473,6 +505,10 @@ export class Asin implements Expression {
     return `asin(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\arcsin ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -526,6 +562,10 @@ export class Acos implements Expression {
 
   toString(): string {
     return `acos(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\arccos ${this.arg.toString()}`
   }
 
   valueOf(): string {
@@ -583,6 +623,10 @@ export class Atan implements Expression {
     return `atan(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\arctan ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -636,6 +680,10 @@ export class Sinh implements Expression {
 
   toString(): string {
     return `sinh(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\sinh ${this.arg.toString()}`
   }
 
   valueOf(): string {
@@ -693,6 +741,10 @@ export class Cosh implements Expression {
     return `cosh(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\cosh ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -746,6 +798,10 @@ export class Tanh implements Expression {
 
   toString(): string {
     return `tanh(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\tanh ${this.arg.toString()}`
   }
 
   valueOf(): string {
@@ -803,6 +859,10 @@ export class Asinh implements Expression {
     return `asinh(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\operatorname{arsinh} ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -858,6 +918,10 @@ export class Acosh implements Expression {
     return `acosh(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\operatorname{arcosh} ${this.arg.toString()}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -911,6 +975,10 @@ export class Atanh implements Expression {
 
   toString(): string {
     return `atanh(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\operatorname{artanh} ${this.arg.toString()}`
   }
 
   valueOf(): string {

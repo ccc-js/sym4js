@@ -9,6 +9,19 @@ fi
 VERSION=$1
 COMMIT_MSG=$2
 
+# Check npm login status
+echo "Checking npm login status..."
+if ! npm whoami > /dev/null 2>&1; then
+    echo ""
+    echo "Error: You must be logged in to npm to publish."
+    echo "Please run 'npm login' first."
+    exit 1
+fi
+
+NPM_USER=$(npm whoami)
+echo "Logged in as: $NPM_USER"
+echo ""
+
 CURRENT_VERSION=$(node -e "const pkg = require('./package.json'); console.log(pkg.version)")
 
 version_gt() {
@@ -91,9 +104,10 @@ npm publish --access public
 echo ""
 echo "=========================================="
 echo "Version upgrade: $CURRENT_VERSION -> $VERSION"
+echo "Published by: $NPM_USER"
 echo "=========================================="
 echo ""
-echo "Published to npm!"
+echo "Published to npm successfully!"
 echo ""
 echo "To push commits and tags:"
 echo "  git push"

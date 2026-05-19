@@ -26,6 +26,10 @@ export class Gamma implements Expression {
     return `Gamma(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\Gamma(${this.arg.toLatex()})`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -83,6 +87,10 @@ export class Beta implements Expression {
 
   toString(): string {
     return `Beta(${this.arg1.toString()}, ${this.arg2.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\mathrm{B}(${this.arg1.toLatex()},${this.arg2.toLatex()})`
   }
 
   valueOf(): string {
@@ -144,6 +152,10 @@ export class Bessel implements Expression {
     return `BesselJ(${this.order.toString()}, ${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `J_{${this.order.toLatex()}}(${this.arg.toLatex()})`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -201,6 +213,10 @@ export class Legendre implements Expression {
 
   toString(): string {
     return `P_${this.n.toString()}(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `P_{${this.n.toLatex()}}(${this.arg.toLatex()})`
   }
 
   valueOf(): string {
@@ -276,6 +292,10 @@ export class Erf implements Expression {
     return `erf(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\operatorname{erf}(${this.arg.toLatex()})`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -331,6 +351,10 @@ export class Erfc implements Expression {
     return `erfc(${this.arg.toString()})`
   }
 
+  toLatex(): string {
+    return `\\operatorname{erfc}(${this.arg.toLatex()})`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -384,6 +408,10 @@ export class Psi implements Expression {
 
   toString(): string {
     return `Psi(${this.arg.toString()})`
+  }
+
+  toLatex(): string {
+    return `\\psi(${this.arg.toLatex()})`
   }
 
   valueOf(): string {

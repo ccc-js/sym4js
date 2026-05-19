@@ -8,6 +8,7 @@ export interface Expression {
   equals(other: Expression): boolean
   toJSON(): ExprJSON
   toString(): string
+  toLatex(): string
   valueOf(): unknown
   clone(): Expression
 
@@ -64,6 +65,10 @@ export class Integer implements Expression {
   }
 
   toString(): string {
+    return this.value.toString()
+  }
+
+  toLatex(): string {
     return this.value.toString()
   }
 
@@ -139,6 +144,10 @@ export class Symbol implements Expression {
   }
 
   toString(): string {
+    return this.name
+  }
+
+  toLatex(): string {
     return this.name
   }
 
@@ -372,6 +381,22 @@ export class Add implements Expression {
     return parts.join('')
   }
 
+  toLatex(): string {
+    const parts: string[] = []
+    for (let i = 0; i < this.args.length; i++) {
+      const arg = this.args[i]
+      const str = arg.toLatex()
+      if (i === 0) {
+        parts.push(str)
+      } else if (arg.type === 'neg') {
+        parts.push(str)
+      } else {
+        parts.push(` + ${str}`)
+      }
+    }
+    return parts.join('')
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -571,6 +596,31 @@ export class Mul implements Expression {
     return parts.join('')
   }
 
+  toLatex(): string {
+    if (this.args.length === 0) return '1'
+    const parts: string[] = []
+    for (const arg of this.args) {
+      let str = arg.toLatex()
+      if (arg.type === 'add') {
+        str = `(${str})`
+      } else if (arg.type === 'integer' && parts.length > 0) {
+        parts.push(str)
+        continue
+      } else if (arg.type === 'pow') {
+        str = `{${str}}`
+      }
+      if (parts.length > 0 && arg.type !== 'integer') {
+        parts.push(str)
+      } else if (arg.type === 'integer') {
+        parts.push(str)
+      } else {
+        parts.push(str)
+      }
+    }
+    const result = parts.join('')
+    return parts.some(a => a.match(/^[0-9]/)) ? result : result
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -637,6 +687,29 @@ export class Pow implements Expression {
     return result
   }
 
+  toLatex(): string {
+    const baseStr = this.base.toLatex()
+    const exp = this.exp
+
+    if (exp.type === 'integer') {
+      const expVal = (exp as Integer).value
+      if (expVal === 0n) return '1'
+      if (expVal === 1n) return baseStr
+      if (expVal === 2n) return `${baseStr}^{2}`
+      if (expVal === 3n) return `${baseStr}^{3}`
+      if (expVal === 4n) return `${baseStr}^{4}`
+      return `${baseStr}^{${expVal}}`
+    }
+
+    if (exp.type === 'rational') {
+      const rat = exp as any
+      return `${baseStr}^{\\frac{${rat.num}}{${rat.den}}}`
+    }
+
+    const expStr = exp.toLatex()
+    return `${baseStr}^{${expStr}}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -696,6 +769,14 @@ export class Neg implements Expression {
     return `-${argStr}`
   }
 
+  toLatex(): string {
+    const argStr = this.arg.toLatex()
+    if (this.arg.type === 'add' || this.arg.type === 'mul') {
+      return `-(${argStr})`
+    }
+    return `-${argStr}`
+  }
+
   valueOf(): string {
     return this.toString()
   }
@@ -720,7 +801,7 @@ export class Neg implements Expression {
     return createPow(this, other)
   }
 
-  negate(): Expression {
+negate(): Expression {
     return this.arg.clone()
   }
 }
@@ -761,6 +842,10 @@ export class Div implements Expression {
         ? `(${denStr})`
         : denStr
     return `${numPart}/${denPart}`
+  }
+
+  toLatex(): string {
+    return `\\frac{${this.numerator.toLatex()}}{${this.denominator.toLatex()}}`
   }
 
   valueOf(): string {
