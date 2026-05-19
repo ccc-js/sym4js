@@ -93,9 +93,6 @@ function evalExpression(expr: Expression, vars: Map<Symbol, number>, precision: 
     case 'sqrt':
       return Math.sqrt(evalExpression(expr.args[0], vars, precision, maxTerms))
 
-    case 'abs':
-      return Math.abs(evalExpression(expr.args[0], vars, precision, maxTerms))
-
     case 'erf':
       return erf(evalExpression(expr.args[0], vars, precision, maxTerms))
 
@@ -103,24 +100,24 @@ function evalExpression(expr: Expression, vars: Map<Symbol, number>, precision: 
       return erfc(evalExpression(expr.args[0], vars, precision, maxTerms))
 
     case 'gamma': {
-      const x = evalExpression((expr as any).arg, vars, precision, maxTerms)
+      const x = evalExpression((expr as unknown as { arg: Expression }).arg, vars, precision, maxTerms)
       return gamma(x)
     }
 
     case 'psi': {
-      const x = evalExpression((expr as any).arg, vars, precision, maxTerms)
+      const x = evalExpression((expr as unknown as { arg: Expression }).arg, vars, precision, maxTerms)
       return digamma(x)
     }
 
     case 'bessel': {
-      const order = evalExpression((expr as any).order, vars, precision, maxTerms)
-      const arg = evalExpression((expr as any).arg, vars, precision, maxTerms)
+      const order = evalExpression((expr as unknown as { order: Expression }).order, vars, precision, maxTerms)
+      const arg = evalExpression((expr as unknown as { arg: Expression }).arg, vars, precision, maxTerms)
       return besselJ(order, arg)
     }
 
     case 'legendre': {
-      const n = Number((expr as any).n)
-      const x = evalExpression((expr as any).arg, vars, precision, maxTerms)
+      const n = Number((expr as unknown as { n: Expression }).n)
+      const x = evalExpression((expr as unknown as { arg: Expression }).arg, vars, precision, maxTerms)
       return legendreP(n, x)
     }
 
