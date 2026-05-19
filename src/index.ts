@@ -38,6 +38,7 @@ import { summation } from './operations/sum.js'
 import { Gamma, Beta, Bessel, Legendre, Erf, Erfc, Psi } from './functions/special.js'
 import { pdesolve, separationOfVariables } from './operations/pde.js'
 import { evaluate } from './numeric/evaluate.js'
+import { parse } from './parse/parser.js'
 
 export {
   Symbol,
@@ -103,6 +104,7 @@ Legendre,
   pdesolve,
   separationOfVariables,
   evaluate,
+  parse,
 }
 
 export function sympify(value: string | number): Expression {
@@ -175,6 +177,7 @@ const sym4js = {
   pdesolve,
   separationOfVariables,
   evaluate,
+  parse,
 }
 
 export default sym4js

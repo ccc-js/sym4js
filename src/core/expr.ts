@@ -688,8 +688,13 @@ export class Pow implements Expression {
   }
 
   toLatex(): string {
-    const baseStr = this.base.toLatex()
+    let baseStr = this.base.toLatex()
     const exp = this.exp
+
+    // Wrap base in parentheses if it's a complex expression
+    if (this.base.type === 'add' || this.base.type === 'mul') {
+      baseStr = `(${baseStr})`
+    }
 
     if (exp.type === 'integer') {
       const expVal = (exp as Integer).value
