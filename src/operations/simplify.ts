@@ -10,8 +10,10 @@ import {
   Div,
   isZero,
   isOne,
+  Symbol,
 } from '../core/expr.js'
 import { Sin, Cos, Tan, Sinh, Cosh, Tanh, Asin, Acos, Atan, Asinh, Acosh, Atanh } from '../functions/trig.js'
+import { Gamma, Legendre } from '../functions/special.js'
 
 export function simplify(expr: Expression): Expression {
   const result = simplifyImpl(expr)
@@ -176,6 +178,91 @@ function simplifyImpl(expr: Expression): Expression {
         )
       }
     }
+  }
+
+  if (expr.type === 'gamma') {
+    const simpArg = simplifyImpl(expr.args[0])
+    if (simpArg.type === 'integer') {
+      const n = (simpArg as Integer).value
+      if (n > 0n && n <= 20n) {
+        let result = 1n
+        for (let i = 1n; i < n; i++) {
+          result *= i
+        }
+        return new Integer(result)
+      }
+    }
+    if (simpArg.type === 'add') {
+      const add = simpArg as Add
+      if (add.args.length === 2) {
+        const [a, b] = add.args
+        if (a.type === 'integer' && b.type === 'symbol') {
+          const intPart = (a as Integer).value
+          if (intPart > 0n) {
+            const sym = b as Symbol
+            let result = 1n
+            for (let i = 0n; i < intPart; i++) {
+              result *= intPart - i
+            }
+            return new Mul(new Integer(result), new Gamma(sym))
+          }
+        }
+      }
+    }
+    return new Gamma(simpArg)
+  }
+
+  if (expr.type === 'beta') {
+    const simpArg1 = simplifyImpl(expr.args[0])
+    const simpArg2 = simplifyImpl(expr.args[1])
+    return new Div(
+      new Mul(new Gamma(simpArg1), new Gamma(simpArg2)),
+      new Gamma(new Add(simpArg1, simpArg2))
+    )
+  }
+
+  if (expr.type === 'legendre') {
+    const simpN = simplifyImpl(expr.args[0])
+    const simpX = simplifyImpl(expr.args[1])
+
+    if (simpN.type === 'integer') {
+      const n = (simpN as Integer).value
+
+      if (n === 0n) return One
+      if (n === 1n) return simpX
+
+      if (n === 2n) {
+        return new Div(
+          new Add(new Mul(new Integer(3), new Pow(simpX, new Integer(2))), new Integer(-1)),
+          new Integer(2)
+        )
+      }
+
+      if (n === 3n) {
+        return new Div(
+          new Add(
+            new Mul(new Integer(5), new Pow(simpX, new Integer(3))),
+            new Neg(new Mul(new Integer(3), simpX))
+          ),
+          new Integer(2)
+        )
+      }
+    }
+
+    if (simpX.type === 'integer') {
+      const xVal = (simpX as Integer).value
+      if (simpN.type === 'integer') {
+        const n = (simpN as Integer).value
+        if (xVal === 1n) return One
+        if (xVal === -1n) {
+          if (n % 2n === 0n) return One
+          return new Integer(-1)
+        }
+        if (xVal === 0n && n > 0n) return Zero
+      }
+    }
+
+    return new Legendre(simpN, simpX)
   }
 
   return expr

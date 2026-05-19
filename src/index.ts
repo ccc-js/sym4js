@@ -36,6 +36,7 @@ import { dsolve } from './operations/odesolve.js'
 import { Tensor } from './tensor/tensor.js'
 import { summation } from './operations/sum.js'
 import { Gamma, Beta, Bessel, Legendre } from './functions/special.js'
+import { pdesolve, separationOfVariables } from './operations/pde.js'
 
 export {
   Symbol,
@@ -95,6 +96,8 @@ export {
   Beta,
   Bessel,
   Legendre,
+  pdesolve,
+  separationOfVariables,
 }
 
 export function sympify(value: string | number): Expression {
@@ -161,6 +164,8 @@ const sym4js = {
   Beta,
   Bessel,
   Legendre,
+  pdesolve,
+  separationOfVariables,
 }
 
 export default sym4js
