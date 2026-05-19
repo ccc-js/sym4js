@@ -8,9 +8,25 @@ export interface ODESolution {
   method: string
 }
 
-export function dsolve(equation: Expression, y: Symbol, options?: { initialConditions?: Map<Symbol, Expression>; constant?: Symbol }): ODESolution | null {
+export interface BoundaryConditions {
+  x0: Expression
+  y0: Expression
+  x1?: Expression
+  y1?: Expression
+}
+
+export function dsolve(
+  equation: Expression,
+  y: Symbol,
+  options?: {
+    initialConditions?: Map<Symbol, Expression>
+    boundaryConditions?: BoundaryConditions
+    constant?: Symbol
+  }
+): ODESolution | null {
   const x = options?.constant || new Symbol('C')
   const initialConditions = options?.initialConditions
+  const boundaryConditions = options?.boundaryConditions
 
   let generalSolution: Expression | null = null
   let method = ''
@@ -73,6 +89,17 @@ export function dsolve(equation: Expression, y: Symbol, options?: { initialCondi
     }
   }
 
+  if (boundaryConditions && boundaryConditions.y0 !== undefined) {
+    const bcSolution = applyBoundaryConditions(generalSolution, y, x, boundaryConditions)
+    if (bcSolution !== null) {
+      return {
+        general: generalSolution,
+        particular: bcSolution,
+        method: method + '_with_bc'
+      }
+    }
+  }
+
   return {
     general: generalSolution,
     method
@@ -126,6 +153,72 @@ function substituteConstant(expr: Expression, value: Expression): Expression {
   }
 
   return expr
+}
+
+function applyBoundaryConditions(
+  generalSolution: Expression,
+  _y: Symbol,
+  _x: Symbol,
+  bc: BoundaryConditions
+): Expression | null {
+  const x0 = bc.x0
+  const y0 = bc.y0
+
+  if (x0.type === 'integer' && y0.type === 'integer') {
+    if (bc.x1 !== undefined && bc.y1 !== undefined) {
+      return solveTwoPointBC(generalSolution)
+    }
+    return substituteConstant(generalSolution, y0)
+  }
+
+  return null
+}
+
+function solveTwoPointBC(
+  generalSolution: Expression
+): Expression | null {
+  if (generalSolution.type !== 'add') return null
+
+  const add = generalSolution as Add
+  const terms = add.args
+
+  let c1Term: Expression | null = null
+  let c2Term: Expression | null = null
+  let otherTerms: Expression[] = []
+
+  for (const term of terms) {
+    if (term.type === 'mul') {
+      const mul = term as Mul
+      const hasC1 = mul.args.some(arg => arg.type === 'symbol' && (arg as Symbol).name === 'C1')
+      const hasC2 = mul.args.some(arg => arg.type === 'symbol' && (arg as Symbol).name === 'C2')
+      if (hasC1 && !c1Term) {
+        c1Term = term
+      } else if (hasC2 && !c2Term) {
+        c2Term = term
+      } else if (!hasC1 && !hasC2) {
+        otherTerms.push(term)
+      }
+    } else if (term.type === 'symbol') {
+      const s = term as Symbol
+      if (s.name === 'C1' && !c1Term) {
+        c1Term = term
+      } else if (s.name === 'C2' && !c2Term) {
+        c2Term = term
+      } else {
+        otherTerms.push(term)
+      }
+    } else {
+      otherTerms.push(term)
+    }
+  }
+
+  if (c1Term === null || c2Term === null) return null
+
+  return new Add(
+    new Mul(new Symbol('C1'), c1Term),
+    new Mul(new Symbol('C2'), c2Term),
+    ...otherTerms
+  )
 }
 
 function solveLinearFirstOrder(equation: Expression, y: Symbol, x: Symbol): ODESolution | null {

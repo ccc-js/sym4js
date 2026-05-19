@@ -35,8 +35,9 @@ import { Poly, polyGcd, polyLcm } from './polynomial/poly.js'
 import { dsolve } from './operations/odesolve.js'
 import { Tensor } from './tensor/tensor.js'
 import { summation } from './operations/sum.js'
-import { Gamma, Beta, Bessel, Legendre } from './functions/special.js'
+import { Gamma, Beta, Bessel, Legendre, Erf, Erfc, Psi } from './functions/special.js'
 import { pdesolve, separationOfVariables } from './operations/pde.js'
+import { evaluate } from './numeric/evaluate.js'
 
 export {
   Symbol,
@@ -95,9 +96,13 @@ export {
   Gamma,
   Beta,
   Bessel,
-  Legendre,
+Legendre,
+  Erf,
+  Erfc,
+  Psi,
   pdesolve,
   separationOfVariables,
+  evaluate,
 }
 
 export function sympify(value: string | number): Expression {
@@ -164,8 +169,12 @@ const sym4js = {
   Beta,
   Bessel,
   Legendre,
+  Erf,
+  Erfc,
+  Psi,
   pdesolve,
   separationOfVariables,
+  evaluate,
 }
 
 export default sym4js
