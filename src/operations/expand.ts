@@ -12,34 +12,48 @@ import {
   isZero,
 } from '../core/expr.js'
 
+const MAX_EXPAND_DEPTH = 100
+
+let expandDepth = 0
+
 export function expand(expr: Expression): Expression {
+  expandDepth = 0
   return expandImpl(expr)
 }
 
 function expandImpl(expr: Expression): Expression {
-  if (expr.type === 'add') {
-    return expandAdd(expr as Add)
+  expandDepth++
+  if (expandDepth > MAX_EXPAND_DEPTH) {
+    return expr // Bail out to prevent stack overflow
   }
-  if (expr.type === 'mul') {
-    return expandMul(expr as Mul)
-  }
-  if (expr.type === 'pow') {
-    return expandPow(expr as Pow)
-  }
-  if (expr.type === 'neg') {
-    const neg = expr as Neg
-    return createNeg(expandImpl(neg.arg))
-  }
-  if (expr.type === 'div') {
-    const div = expr as Div
-    const numExpanded = expandImpl(div.numerator)
-    const denExpanded = expandImpl(div.denominator)
-    if (denExpanded.type === 'add') {
-      return expandFraction(numExpanded, denExpanded as Add)
+
+  try {
+    if (expr.type === 'add') {
+      return expandAdd(expr as Add)
     }
-    return new Div(numExpanded, denExpanded)
+    if (expr.type === 'mul') {
+      return expandMul(expr as Mul)
+    }
+    if (expr.type === 'pow') {
+      return expandPow(expr as Pow)
+    }
+    if (expr.type === 'neg') {
+      const neg = expr as Neg
+      return createNeg(expandImpl(neg.arg))
+    }
+    if (expr.type === 'div') {
+      const div = expr as Div
+      const numExpanded = expandImpl(div.numerator)
+      const denExpanded = expandImpl(div.denominator)
+      if (denExpanded.type === 'add') {
+        return expandFraction(numExpanded, denExpanded as Add)
+      }
+      return new Div(numExpanded, denExpanded)
+    }
+    return expr
+  } finally {
+    expandDepth--
   }
-  return expr
 }
 
 function expandAdd(expr: Add): Expression {
@@ -286,14 +300,23 @@ function expandAddLiterals(adds: Add[], mult: number): Expression {
 function expandFraction(num: Expression, den: Add): Expression {
   const numTerms = extractAllTerms(num)
 
-  const result = new Add(
-    ...numTerms.map((nTerm) => {
-      const [nCoeff, nRest] = extractCoeff(nTerm)
-      return new Div(new Integer(nCoeff).mul(nRest), den)
-    })
-  )
+  // Check if expansion would cause cycle - if numerator has same structure as denominator
+  const numStr = num.toString()
+  const denStr = den.toString()
+  if (numStr.includes(denStr) || denStr.includes(numStr)) {
+    // Potential cycle - return simplified form without recursion
+    return new Div(num, den)
+  }
 
-  return expandImpl(result)
+  const terms: Expression[] = []
+  for (const nTerm of numTerms) {
+    const [nCoeff, nRest] = extractCoeff(nTerm)
+    terms.push(new Div(new Integer(nCoeff).mul(nRest), den))
+  }
+
+  if (terms.length === 0) return Zero
+  if (terms.length === 1) return terms[0]
+  return new Add(...terms)
 }
 
 function extractAllTerms(expr: Expression): Expression[] {

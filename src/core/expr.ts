@@ -961,5 +961,15 @@ export function createNeg(arg: Expression): Expression {
 }
 
 export function symbols(...names: string[]): Symbol[] {
-  return names.map((name) => new Symbol(name))
+  const result: Symbol[] = []
+  for (const name of names) {
+    // Split by space or comma
+    const parts = name.split(/[\s,]+/)
+    for (const part of parts) {
+      if (part.trim()) {
+        result.push(new Symbol(part.trim()))
+      }
+    }
+  }
+  return result
 }
