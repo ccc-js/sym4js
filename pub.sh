@@ -71,23 +71,30 @@ echo "Building..."
 npm run build
 
 echo ""
-echo "Committing..."
+echo "Testing..."
+npm run test:run
+
+echo ""
+echo "Linting..."
+npm run lint
+
+echo ""
+echo "Committing and tagging..."
 git add -A
 git commit -m "$COMMIT_MSG"
 git tag -a "v$VERSION" -m "Release v$VERSION"
+
+echo ""
+echo "Publishing to npm..."
+npm publish --access public
 
 echo ""
 echo "=========================================="
 echo "Version upgrade: $CURRENT_VERSION -> $VERSION"
 echo "=========================================="
 echo ""
-echo "Git commit and tag created."
+echo "Published to npm!"
 echo ""
-echo "To complete the release:"
+echo "To push commits and tags:"
 echo "  git push"
 echo "  git push origin v$VERSION"
-echo ""
-echo "To publish to npm (after testing):"
-echo "  npm publish --access public"
-echo ""
-echo "NOTE: This script does NOT publish to npm automatically."
